@@ -6,7 +6,7 @@
 static int testN = 0;
 static const struct {const char *const in; int n;} testInOut[] = {
     {"0\n\n", 0},
-    {"1\n25\n", 1},
+    {"1\n25\n", 2},
     {"2\n17 25\n", 2},
     {"3\n2 -1 4\n", 2},
     {"3\n2 4 -1\n", 2},
@@ -45,6 +45,7 @@ static const struct {const char *const in; int n;} testInOut[] = {
     {"4\n4 2 3 1\n", 3},
     {"4\n4 3 1 2\n", 3},
     {"4\n4 3 2 1\n", 3},
+    {"12\n10 18 7 15 16 30 20 40 60 2 1 70\n", 4},
 };
 
 static int FeedFromArray(void)
@@ -188,96 +189,7 @@ static int checkerBig1(void)
         int n;
         if (ScanInt(out, &n) != Pass) {
             passed = 0;
-        } else if (23 != n) {
-            passed = 0;
-            printf("wrong output -- ");
-        }
-    }
-    if (passed) {
-        passed = !HaveGarbageAtTheEnd(out);
-    }
-    fclose(out);
-    if (passed) {
-        printf("PASSED\n");
-        testN++;
-        return 0;
-    } else {
-        printf("FAILED\n");
-        testN++;
-        return 1;
-    }
-}
-
-static void genTree(FILE *in, int height, int min, int max)
-{
-    int mid = (min*21+max*34)/55;
-    if (height == 0) {
-        return;
-    }
-    if (height == 1) {
-        if (fprintf(in, "%d ", min) < 0) {
-            printf("can't create in.txt. No space on disk?\n");
-            fclose(in);
-            exit(1);
-        }
-        return;
-    }
-    if (height == 2) {
-        if (min == max) {
-            printf("Internal error: generation failed, h = %d, min = %d, max = %d\n", height, min, max);
-            fclose(in);
-            exit(1);
-        }
-        if (fprintf(in, "%d %d ", max, min) < 0) {
-            printf("can't create in.txt. No space on disk?\n");
-            fclose(in);
-            exit(1);
-        }
-        return;
-    }
-    if (mid <= min || max <= mid) {
-        printf("Internal error: generation failed, h = %d, min = %d, max = %d\n", height, min, max);
-        fclose(in);
-        exit(1);
-    }
-    genTree(in, height-1, min, mid-1);
-    genTree(in, height-2, mid+1, max);
-    if (fprintf(in, "%d ", mid) < 0) {
-        printf("can't create in.txt. No space on disk?\n");
-        fclose(in);
-        exit(1);
-    }
-}
-
-static int feederBig2(void)
-{
-    FILE *const in = fopen("in.txt", "w+");
-    if (!in) {
-        printf("can't create in.txt. No space on disk?\n");
-        return -1;
-    }
-    fprintf(in, "1346269\n");
-    genTree(in, 30, 0, 4000000);
-    fprintf(in, "\n");
-    fclose(in);
-    LabMemoryLimit = 1346269*(sizeof(int)+sizeof(int)+2*GetLabPointerSize())+MIN_PROCESS_RSS_BYTES;
-    return 0;
-}
-
-static int checkerBig2(void)
-{
-    FILE *const out = fopen("out.txt", "r");
-    int passed = 1;
-    if (!out) {
-        printf("can't open out.txt\n");
-        testN++;
-        return -1;
-    }
-    {
-        int n;
-        if (ScanInt(out, &n) != Pass) {
-            passed = 0;
-        } else if (29 != n) {
+        } else if (19 != n) {
             passed = 0;
             printf("wrong output -- ");
         }
@@ -338,9 +250,9 @@ const TLabTest LabTests[] = {
     {FeedFromArray, CheckFromArray},
     {FeedFromArray, CheckFromArray},
     {FeedFromArray, CheckFromArray},
+    {FeedFromArray, CheckFromArray},
     {feederBig, checkerBig},
     {feederBig1, checkerBig1},
-    {feederBig2, checkerBig2},
 };
 
 TLabTest GetLabTest(int testIdx) {
@@ -352,7 +264,7 @@ int GetTestCount(void) {
 }
 
 const char* GetTesterName(void) {
-    return "Lab 6 AVL trees";
+    return "Lab 6-1 RB trees";
 }
 
 int GetTestTimeout() {
